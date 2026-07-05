@@ -197,6 +197,11 @@
     padding:6px 12px; font-weight:700; font-size:0.82rem; cursor:pointer; transition:.15s;
   }
   .like-btn:hover{ border-color:var(--pink); }
+  .del-btn{
+    background:transparent; border:none; color:var(--muted); font-size:0.95rem;
+    cursor:pointer; opacity:0.5; transition:.2s; padding:2px 4px;
+  }
+  .del-btn:hover{ opacity:1; color:var(--pink); }
   .like-btn.liked{ background:var(--pink); color:var(--bg); border-color:var(--pink); }
   .like-btn .heart{ transition:.2s; }
   .like-btn.liked .heart{ transform:scale(1.2); }
@@ -626,7 +631,10 @@
         : '';
       return `
       <div class="note">
-        <p class="pseudo">${escapeHtml(m.pseudo)}</p>
+        <div class="meta" style="margin-bottom:6px;">
+          <p class="pseudo" style="margin:0;">${escapeHtml(m.pseudo)}</p>
+          <button class="del-btn" title="Supprimer (code requis)" onclick="deleteMessage('${m.id}')">🗑️</button>
+        </div>
         ${mediaHtml}
         ${m.text ? `<p class="txt">${escapeHtml(m.text)}</p>` : ''}
         <div class="meta">
@@ -694,6 +702,24 @@
     try{
       await messagesCol.doc(id).update({ likes: newLikes });
     }catch(err){
+      console.error(err);
+    }
+  };
+
+  const ADMIN_PIN = "alessio"; // ton code secret pour supprimer une photo/vidéo/message
+
+  window.deleteMessage = async function(id){
+    const code = prompt("Code secret pour supprimer ce post :");
+    if(code === null) return; // annulé
+    if(code !== ADMIN_PIN){
+      alert("Code incorrect, la publication n'a pas été supprimée.");
+      return;
+    }
+    if(!confirm("Supprimer définitivement cette publication ?")) return;
+    try{
+      await messagesCol.doc(id).delete();
+    }catch(err){
+      alert("La suppression a échoué, réessaie.");
       console.error(err);
     }
   };
